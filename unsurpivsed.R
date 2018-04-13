@@ -1,3 +1,4 @@
+library(dbscan)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("init.R")
 source("metric_space.R")
@@ -15,17 +16,39 @@ while(c_in_gold != 29){
 }
 gold.kmeans <- data.frame(protein = names(gold.kmeans), cluster = gold.kmeans)
 
+tss(gold.dist,gold.kmeans)
 
 
 
 
 source("paircounting.R")
-plot(silhouette(clustering.kmeans$cluster, dist))
+
+
+plot(silhouette(clustering.kmeans$cluster, plot.data.sim))
+
+mean(plot.data.sim)
+plot(density(plot.data.sim))
+
+#taking the 1st quantile of the distance distribution to get a reasonable epsilon value. 
+#original dbscan paper found minpts 4 to be a good value
+clustering.dbscan = dbscan(plot.data, quantile(plot.data.sim, probs = c(0.01)), minPts=4)
+clustering.dbscan[["proteins"]] = rownames(plot.data)
+clustering.dbscan[["tss"]] = tss(dist,data.frame(he=clustering.dbscan$proteins, ha=clustering.dbscan$cluster))
+clustering.dbscan[["silhouette"]] = silhouette(clustering.dbscan$cluster, plot.data.sim)
+plot(clustering.dbscan$silhouette)
 
 
 
-library(cluster)
-plot(gold.sil)
 
-unique(clustering.kmeans$cluster)
+
+
+
+
+
+
+
+
+
+
+
 
